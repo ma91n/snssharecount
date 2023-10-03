@@ -153,18 +153,18 @@ func main() {
 						}
 					}
 
-					if cache.FaceBook.FetchAt.Before(resetMinute) {
-						fbCnt, err := fetchFacebook(v.Loc)
-						if err != nil {
-							return err
-						}
-						cache.FaceBook = ShareCnt{
-							Count:   fbCnt.Likes(),
-							FetchAt: now,
-						}
-					}
-
-					snsCacheMap[v.Loc] = cache
+					//if cache.FaceBook.FetchAt.Before(resetMinute) {
+					//	fbCnt, err := fetchFacebook(v.Loc)
+					//	if err != nil {
+					//		return err
+					//	}
+					//	cache.FaceBook = ShareCnt{
+					//		Count:   fbCnt.Likes(),
+					//		FetchAt: now,
+					//	}
+					//}
+					//
+					//snsCacheMap[v.Loc] = cache
 				}
 			}
 
