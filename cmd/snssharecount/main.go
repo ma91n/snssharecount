@@ -163,8 +163,8 @@ func main() {
 					//		FetchAt: now,
 					//	}
 					//}
-					//
-					//snsCacheMap[v.Loc] = cache
+
+					snsCacheMap[v.Loc] = cache
 				}
 			}
 
