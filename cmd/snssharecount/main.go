@@ -110,7 +110,7 @@ func main() {
 			// 公開後14日は更新する
 			now := time.Now()
 			resetMinute := now.Add(-1 * time.Minute)
-			cacheResetAt := now.AddDate(0, 0, cCtx.Int("days"))
+			cacheResetAt := now.AddDate(0, 0, -1*cCtx.Int("days"))
 
 			disables := strings.Split(cCtx.String("disable"), ",")
 
