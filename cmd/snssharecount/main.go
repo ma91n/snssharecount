@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/urfave/cli"
+	"golang.org/x/exp/slices"
 	"sort"
+	"strings"
 
 	"github.com/snabb/sitemap"
-	"github.com/urfave/cli"
 	"golang.org/x/exp/maps"
 	"io"
 	"log"
@@ -81,6 +83,18 @@ func main() {
 	app := &cli.App{
 		Name:  "sns share count",
 		Usage: "snssharecount <URL>",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "disable",
+				Value: "",
+				Usage: "disable refresh sns count. eg) disable=facebook,hatebu,pocket",
+			},
+			&cli.IntFlag{
+				Name:  "days",
+				Value: 14,
+				Usage: "enable to reset sns count before days of this flag",
+			},
+		},
 		Action: func(cCtx *cli.Context) error {
 
 			snsCacheMap, err := readSNSCacheJSON()
@@ -96,7 +110,9 @@ func main() {
 			// 公開後14日は更新する
 			now := time.Now()
 			resetMinute := now.Add(-1 * time.Minute)
-			cacheResetAt := now.AddDate(0, 0, -14)
+			cacheResetAt := now.AddDate(0, 0, cCtx.Int("days"))
+
+			disables := strings.Split(cCtx.String("disable"), ",")
 
 			defaultCnt := ShareCnt{
 				Count: 0,
@@ -131,7 +147,7 @@ func main() {
 						}
 					}
 
-					if cache.Pocket.FetchAt.Before(resetMinute) {
+					if cache.Pocket.FetchAt.Before(resetMinute) && slices.Contains(disables, "pocket") {
 						pc, err := fetchPocket(v.Loc)
 						if err != nil {
 							return err
@@ -142,7 +158,7 @@ func main() {
 						}
 					}
 
-					if cache.Hatebu.FetchAt.Before(resetMinute) {
+					if cache.Hatebu.FetchAt.Before(resetMinute) && slices.Contains(disables, "hatebu") {
 						hatebuCnt, err := fetchHatebu(v.Loc)
 						if err != nil {
 							return err
@@ -153,7 +169,7 @@ func main() {
 						}
 					}
 
-					if cache.FaceBook.FetchAt.Before(resetMinute) {
+					if cache.FaceBook.FetchAt.Before(resetMinute) && slices.Contains(disables, "facebook") {
 						fbCnt, err := fetchFacebook(v.Loc)
 						if err != nil {
 							return err
