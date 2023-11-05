@@ -37,8 +37,8 @@ type PocketResponse struct {
 }
 
 type FaceBookResponse struct {
-	OgObject *OgObject
-	ID       string `json:"id"`
+	OgObject *OgObject `json:"og_object"`
+	ID       string    `json:"id"`
 }
 
 func (c FaceBookResponse) Likes() int {
