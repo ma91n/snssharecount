@@ -153,16 +153,16 @@ func main() {
 						}
 					}
 
-					//if cache.FaceBook.FetchAt.Before(resetMinute) {
-					//	fbCnt, err := fetchFacebook(v.Loc)
-					//	if err != nil {
-					//		return err
-					//	}
-					//	cache.FaceBook = ShareCnt{
-					//		Count:   fbCnt.Likes(),
-					//		FetchAt: now,
-					//	}
-					//}
+					if cache.FaceBook.FetchAt.Before(resetMinute) {
+						fbCnt, err := fetchFacebook(v.Loc)
+						if err != nil {
+							return err
+						}
+						cache.FaceBook = ShareCnt{
+							Count:   fbCnt.Likes(),
+							FetchAt: now,
+						}
+					}
 
 					snsCacheMap[v.Loc] = cache
 				}
@@ -320,6 +320,9 @@ func fetchFacebook(url string) (FaceBookResponse, error) {
 	if err != nil {
 		return FaceBookResponse{}, fmt.Errorf("facebook response body: %w", err)
 	}
+
+	resBody := string(body)
+	fmt.Println(resBody)
 
 	var fbc FaceBookResponse
 	if err := json.Unmarshal(body, &fbc); err != nil {
