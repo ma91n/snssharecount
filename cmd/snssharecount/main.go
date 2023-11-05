@@ -147,7 +147,7 @@ func main() {
 						}
 					}
 
-					if cache.Pocket.FetchAt.Before(resetMinute) && slices.Contains(disables, "pocket") {
+					if cache.Pocket.FetchAt.Before(resetMinute) && !slices.Contains(disables, "pocket") {
 						pc, err := fetchPocket(v.Loc)
 						if err != nil {
 							return err
@@ -158,7 +158,7 @@ func main() {
 						}
 					}
 
-					if cache.Hatebu.FetchAt.Before(resetMinute) && slices.Contains(disables, "hatebu") {
+					if cache.Hatebu.FetchAt.Before(resetMinute) && !slices.Contains(disables, "hatebu") {
 						hatebuCnt, err := fetchHatebu(v.Loc)
 						if err != nil {
 							return err
@@ -169,7 +169,7 @@ func main() {
 						}
 					}
 
-					if cache.FaceBook.FetchAt.Before(resetMinute) && slices.Contains(disables, "facebook") {
+					if cache.FaceBook.FetchAt.Before(resetMinute) && !slices.Contains(disables, "facebook") {
 						fbCnt, err := fetchFacebook(v.Loc)
 						if err != nil {
 							return err
