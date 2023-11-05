@@ -337,9 +337,6 @@ func fetchFacebook(url string) (FaceBookResponse, error) {
 		return FaceBookResponse{}, fmt.Errorf("facebook response body: %w", err)
 	}
 
-	resBody := string(body)
-	fmt.Println(resBody)
-
 	var fbc FaceBookResponse
 	if err := json.Unmarshal(body, &fbc); err != nil {
 		return FaceBookResponse{}, fmt.Errorf("facebook response unmarshal json: %w", err)
