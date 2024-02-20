@@ -332,7 +332,7 @@ func fetchFacebook(url string) (FaceBookResponse, error) {
 	q.Add("access_token", os.Getenv("FB_TOKEN"))
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := hc.Do(req)
 	if err != nil {
 		return FaceBookResponse{}, fmt.Errorf("facebook http get count: %w", err)
 	}
