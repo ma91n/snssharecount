@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"github.com/urfave/cli"
@@ -77,6 +78,10 @@ type FeedlyResponse struct {
 	VisualURL           string   `json:"visualUrl"`
 	EstimatedEngagement int      `json:"estimatedEngagement"`
 }
+
+var hc = &http.Client{Transport: &http.Transport{
+	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+}}
 
 func main() {
 
@@ -206,7 +211,7 @@ func main() {
 }
 
 func fetchSiteMap() (*sitemap.Sitemap, error) {
-	resp, err := http.Get("https://future-architect.github.io/post-sitemap.xml")
+	resp, err := hc.Get("https://future-architect.github.io/post-sitemap.xml")
 	if err != nil {
 		return nil, fmt.Errorf("get post-sitemap.xml: %w", err)
 	}
@@ -244,7 +249,8 @@ func readSNSCacheJSON() (map[string]URLShareCnt, error) {
 }
 
 func fetchFeedly() (FeedlyResponse, error) {
-	resp, err := http.Get("https://cloud.feedly.com/v3/feeds/feed%2Fhttps%3A%2F%2Ffuture-architect.github.io%2Fatom.xml")
+
+	resp, err := hc.Get("https://cloud.feedly.com/v3/feeds/feed%2Fhttps%3A%2F%2Ffuture-architect.github.io%2Fatom.xml")
 	if err != nil {
 		return FeedlyResponse{}, fmt.Errorf("feedly: %w", err)
 	}
