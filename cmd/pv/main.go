@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/urfave/cli"
+	"golang.org/x/exp/maps"
 	ga "google.golang.org/api/analyticsdata/v1beta"
 	"math"
 	"strconv"
+	"strings"
 
 	//"google.golang.org/api/analyticsreporting/v4"
 	"google.golang.org/api/option"
@@ -82,7 +84,8 @@ func fetchGoogleAnalytics(ars *ga.Service, ctx context.Context, start, end strin
 		return nil, fmt.Errorf("reporting batch get: %w", err)
 	}
 
-	pvs := make([]GoogleAnalyticsPV, 0, 100)
+	pvsMap := make(map[string]GoogleAnalyticsPV, 1000)
+	pathEmptyPVMap := make(map[string]int, 1000)
 	for _, report := range resp.Reports {
 		for _, row := range report.Rows {
 
@@ -93,17 +96,61 @@ func fetchGoogleAnalytics(ars *ga.Service, ctx context.Context, start, end strin
 			roundupPV := int(math.Ceil(float64(viewCnt)/100)) * 100
 
 			urlPath := row.DimensionValues[0].Value
+			articleTitle := row.DimensionValues[1].Value
+
 			if len(urlPath) == 0 {
 				// 原因が不明だが空っぽのケースがある
+				pathEmptyPVMap[articleTitle] = roundupPV
 				continue
 			}
 
-			pvs = append(pvs, GoogleAnalyticsPV{
-				Path:  row.DimensionValues[0].Value,
+			if strings.HasPrefix(urlPath, "/tags/") || strings.HasPrefix(urlPath, "/authors/") ||
+				strings.HasPrefix(urlPath, "/categories/") {
+				continue
+			}
+
+			if strings.HasSuffix(urlPath, "index.html") {
+				// URLに index.html が含まれるケースがある
+				urlPath = strings.ReplaceAll(urlPath, "index.html", "")
+			}
+
+			analyticsPV, ok := pvsMap[articleTitle]
+			if ok {
+				analyticsPV.Pv += roundupPV
+				pvsMap[articleTitle] = analyticsPV
+				continue
+			}
+
+			pvsMap[articleTitle] = GoogleAnalyticsPV{
+				Path:  urlPath,
 				Pv:    roundupPV,
-				Title: row.DimensionValues[1].Value,
-			})
+				Title: articleTitle,
+			}
 		}
 	}
-	return pvs, nil
+
+	// タイトルで当ててPV数を合算
+	for k, v := range pathEmptyPVMap {
+		analyticsPV, ok := pvsMap[k]
+		if !ok {
+			// URL不明のため諦める
+			continue
+		}
+		analyticsPV.Pv += v
+		pvsMap[k] = analyticsPV
+	}
+
+	// URLで一意にする（途中でタイトル変更があると揺れるため）
+	uniquePVs := make(map[string]GoogleAnalyticsPV, len(pvsMap))
+	for _, v := range pvsMap {
+		analyticsPV, ok := uniquePVs[v.Path]
+		if !ok {
+			uniquePVs[v.Path] = v
+			continue
+		}
+		analyticsPV.Pv += v.Pv
+		uniquePVs[v.Path] = analyticsPV
+	}
+
+	return maps.Values(uniquePVs), nil
 }
