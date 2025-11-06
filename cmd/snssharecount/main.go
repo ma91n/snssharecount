@@ -96,7 +96,7 @@ func main() {
 			},
 			&cli.IntFlag{
 				Name:  "days",
-				Value: 14,
+				Value: 30,
 				Usage: "enable to reset sns count before days of this flag",
 			},
 		},
@@ -112,7 +112,7 @@ func main() {
 				return err
 			}
 
-			// 公開後14日は更新する
+			// 公開後30日は更新する
 			now := time.Now()
 			resetMinute := now.Add(-1 * time.Minute)
 			cacheResetAt := now.AddDate(0, 0, -1*cCtx.Int("days"))
@@ -152,16 +152,17 @@ func main() {
 						}
 					}
 
-					if cache.Pocket.FetchAt.Before(resetMinute) && !slices.Contains(disables, "pocket") {
-						pc, err := fetchPocket(v.Loc)
-						if err != nil {
-							return err
-						}
-						cache.Pocket = ShareCnt{
-							Count:   pc.Saves,
-							FetchAt: now,
-						}
-					}
+					// 2025/10月よりPocketのAPIが無効化されたと思われるためコメントアウト
+					//if cache.Pocket.FetchAt.Before(resetMinute) && !slices.Contains(disables, "pocket") {
+					//	pc, err := fetchPocket(v.Loc)
+					//	if err != nil {
+					//		return err
+					//	}
+					//	cache.Pocket = ShareCnt{
+					//		Count:   pc.Saves,
+					//		FetchAt: now,
+					//	}
+					//}
 
 					if cache.Hatebu.FetchAt.Before(resetMinute) && !slices.Contains(disables, "hatebu") {
 						hatebuCnt, err := fetchHatebu(v.Loc)
@@ -268,32 +269,32 @@ func fetchFeedly() (FeedlyResponse, error) {
 	return feedly, nil
 }
 
-func fetchPocket(url string) (PocketResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, "https://widgets.getpocket.com/api/saves", nil)
-	if err != nil {
-		return PocketResponse{}, fmt.Errorf("pocket request url: %w", err)
-	}
-	q := req.URL.Query()
-	q.Add("url", url)
-	req.URL.RawQuery = q.Encode()
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return PocketResponse{}, fmt.Errorf("pocket count: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return PocketResponse{}, fmt.Errorf("pocket response body: %w", err)
-	}
-
-	var pc PocketResponse
-	if err := json.Unmarshal(body, &pc); err != nil {
-		return PocketResponse{}, fmt.Errorf("pocket response unmarshal json: %w", err)
-	}
-	return pc, nil
-}
+//func fetchPocket(url string) (PocketResponse, error) {
+//	req, err := http.NewRequest(http.MethodGet, "https://widgets.getpocket.com/api/saves", nil)
+//	if err != nil {
+//		return PocketResponse{}, fmt.Errorf("pocket request url: %w", err)
+//	}
+//	q := req.URL.Query()
+//	q.Add("url", url)
+//	req.URL.RawQuery = q.Encode()
+//
+//	resp, err := http.DefaultClient.Do(req)
+//	if err != nil {
+//		return PocketResponse{}, fmt.Errorf("pocket count: %w", err)
+//	}
+//	defer resp.Body.Close()
+//
+//	body, err := io.ReadAll(resp.Body)
+//	if err != nil {
+//		return PocketResponse{}, fmt.Errorf("pocket response body: %w", err)
+//	}
+//
+//	var pc PocketResponse
+//	if err := json.Unmarshal(body, &pc); err != nil {
+//		return PocketResponse{}, fmt.Errorf("pocket response unmarshal json: %w", err)
+//	}
+//	return pc, nil
+//}
 
 func fetchHatebu(url string) (int, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://bookmark.hatenaapis.com/count/entry", nil)

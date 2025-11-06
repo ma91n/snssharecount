@@ -6,6 +6,7 @@
 
 ```sh
 go install github.com/ma91n/snssharecount/cmd/snssharecount@latest
+go install github.com/ma91n/snssharecount/cmd/pv@latest
 go install github.com/ma91n/snssharecount/cmd/ga@latest
 ```
 
