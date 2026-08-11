@@ -83,7 +83,10 @@ func fetchGoogleAnalytics(ars *ga.Service, ctx context.Context, start, end strin
 				Dimensions: []*ga.Dimension{{Name: "pagePath"}, {Name: "pageTitle"}},
 				Metrics:    []*ga.Metric{{Name: "screenPageViews"}},
 				OrderBys:   []*ga.OrderBy{{Desc: true, Dimension: &ga.DimensionOrderBy{DimensionName: "screenPageViews"}}},
-				Limit:      50,
+				// 50だと記事以外のページを除くと50位まで並べられない。
+				// ブログ側で年間人気を50位まで表示するため余裕を持たせる
+				// https://github.com/future-architect/future-architect.github.io/issues/2309
+				Limit: 100,
 			},
 		},
 	}).Context(ctx).Do()
@@ -91,7 +94,7 @@ func fetchGoogleAnalytics(ars *ga.Service, ctx context.Context, start, end strin
 		return nil, fmt.Errorf("reporting batch get: %w", err)
 	}
 
-	pvs := make([]GoogleAnalyticsPV, 0, 50)
+	pvs := make([]GoogleAnalyticsPV, 0, 100)
 	for _, report := range resp.Reports {
 		for _, row := range report.Rows {
 			pvs = append(pvs, GoogleAnalyticsPV{
